@@ -202,7 +202,33 @@ paths:
               schema:
                 $ref: '#/components/schemas/User'
         '401': { $ref: '#/components/responses/Unauthorized' }
-
+  /cities:
+    get:
+      tags:[Découverte]
+      operationId: getCities
+      summary:Rechercher une ville
+      description: |
+        Rechercher une ville desservie, par filtre textuel.
+        Chaque ville du réseau possède une catapulte unique en son centre.
+        Opération PUBLIQUE : on cherche sans être connecté.
+      security: []
+      parameters:
+        - name : q
+          in: query
+          required: false
+          description: Filtre textuel pour les villes.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Liste des villes filtrés.
+          content:
+            application/json:
+              schema:
+                type: array
+                items: $ref: '#/components/schemas/City'
+        '400': { $ref:'#/components/responses/BadRequest' }
+        '422': { $ref: '#/components/responses/ValidationError' }
   # ==========================================================================
   #  À VOUS — Le flux de réservation
   #
