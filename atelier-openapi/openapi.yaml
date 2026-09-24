@@ -290,7 +290,6 @@ paths:
           schema:
             type: string
             format: uuid
-            example:
       responses:
         '200':
           description: Détail du lancer.
@@ -330,7 +329,6 @@ paths:
         Récupérer le panier actif du voyageur connecté. Un voyageur n'a qu'un
         panier actif à la fois — et parfois aucun, ce qui est un état normal
         et non une erreur. Réfléchissez à ce que ça implique pour la réponse.
-      security: []
       responses:
         '200':
           description: Panier actif récupéré.
@@ -339,6 +337,155 @@ paths:
               schema:
                 $ref: '#/components/schemas/Cart'
         '401': { $ref: '#/components/responses/Unauthorized'}
+
+  /carts/{id}/items:
+    post:   
+      tags: [Panier]
+      operationId: addCartItem
+      summary: Ajouter un lancer au panier 
+      description: |
+        Ajouter un lancer au panier, avec un nombre de places.
+        L'écran de panier doit pouvoir se peindre à partir de cette seule
+        réponse, sans second appel. Le total est calculé par le serveur.  
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: Identifiant unique du panier.
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [tripId, passengers]
+              properties:
+                tripId:
+                  type: string
+                  format: uuid
+                passengers:
+                  type: integer
+                  minimum: 1
+      responses:
+        '200':
+          description: Panier mis à jour après l'ajout du lancer.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+
+  /carts/{id}/items/{itemId}:
+    delete:
+      tags: [Panier]
+      operationId: removeCartItem
+      summary: Supprimer un lancer du panier 
+      description: |
+        Retirer une ligne du panier. Si c'était la dernière, le panier disparaît
+        côté serveur — le voyageur n'a rien à faire de plus.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Identifiant unique du panier.
+          schema:
+            type: string
+            format: uuid
+        - name: itemId
+          in: path
+          required: true
+          description: Identifiant unique de la ligne (item) à retirer.
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Lancer retirée avec succès.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }  
+
+  /carts/{id}/pay:
+    post:
+      tags: [Panier]
+      operationId: payCart
+      summary: Payer le panier
+      description: |
+        Payer le panier : il passe de `pending` à `paid` et les billets sont
+        émis, un par place réservée. Aucune donnée bancaire ne circule : on
+        déclare un moyen de paiement, rien de plus.
+        L'écran de confirmation doit pouvoir se peindre à partir de cette seule
+        réponse. Que se passe-t-il si le panier est déjà payé ?
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Identifiant unique du panier à régler.
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [paymentMethod]
+              properties:
+                paymentMethod:
+                  type: string
+                  enum: [card, voucher]
+      responses:
+        '200':
+          description: Panier payé et billets attribués.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: Le panier est déjà régler.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /tickets:
+    get:
+      tags: [Billets]
+      operationId: getTickets
+      summary: Montrer ses billets
+      description: |
+        Lister les billets du voyageur connecté. Un billet est un droit à
+        embarquer sur un lancer : il n'est pas nominatif, il vaut pour une
+        place et non pour une personne désignée.
+      responses:
+        '200':
+          description: Liste des billets possédés.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ticket'
+        '401': { $ref: '#/components/responses/Unauthorized'}
+
+        
+
+
+
 
 
                 
