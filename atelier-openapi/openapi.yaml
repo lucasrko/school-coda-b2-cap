@@ -202,33 +202,49 @@ paths:
               schema:
                 $ref: '#/components/schemas/User'
         '401': { $ref: '#/components/responses/Unauthorized' }
+
   /cities:
     get:
       tags: [Découverte]
-      operationId: getCities
-      summary: Rechercher une ville
+      operationId: listCities
+      summary: Rechercher une ville desservie
       description: |
-        Rechercher une ville desservie, par filtre textuel.
-        Chaque ville du réseau possède une catapulte unique en son centre.
-        Opération PUBLIQUE : on cherche sans être connecté.
+        Retourne les villes du réseau, filtrées par recherche textuelle. Chaque ville
+        possède une catapulte unique en son centre, qui sert à la fois de point de
+        lancement et de zone de réception.
       security: []
       parameters:
-        - name : q
+        - name: q
           in: query
           required: false
-          description: Filtre textuel pour les villes.
+          description: Filtre textuel sur le nom de la ville. Insensible à la casse et aux accents.
           schema:
             type: string
+          example: dij
+        - name: limit
+          in: query
+          required: false
+          description: Nombre maximum de villes retournées.
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
       responses:
         '200':
-          description: Liste des villes filtrés.
+          description: Villes correspondant au filtre. Tableau vide si aucune.
           content:
             application/json:
               schema:
                 type: array
-                items: $ref: '#/components/schemas/City'
-        '400': { $ref:'#/components/responses/BadRequest' }
+                items:
+                  $ref: '#/components/schemas/City'
+              example:
+                - id: 3f2a1b8c-5d4e-4f6a-9b8c-1d2e3f4a5b6c
+                  name: Dijon
+        '400': { $ref: '#/components/responses/BadRequest' }
         '422': { $ref: '#/components/responses/ValidationError' }
+
 
   /trips/search:
     post:
@@ -565,6 +581,105 @@ components:
   #  toute l'API, y compris pour les opérations que vous allez écrire.
   #  Servez-vous en (`$ref`), ne les redéfinissez pas.
   # ==========================================================================
+  schemas:
+    City:
+      type: object
+      description: Ville desservie. Chaque ville possède une catapulte unique en son centre.
+      required: [id, name]
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 3f2a1b8c-5d4e-4f6a-9b8c-1d2e3f4a5b6c
+        name:
+          type: string
+          example: Dijon
+    TripSummary:
+      type: object
+      required: [id, fromCity, toCity, departureTime, durationTime, price]
+      properties:
+        id:
+          type: string
+          format: uuid
+        fromCity:
+          $ref: '#/components/schemas/City'
+        toCity:
+          $ref: '#/components/schemas/City'
+        departureTime:
+          type: string
+          format: date-time
+        durationTime:
+          type: integer
+        price:
+          type: number
+          format: float
+
+    TripDetail:
+      allOf:
+        - $ref '#/components/schemas/TripSummary'
+        - type: object
+          required: [massAllowance, catapultModel, boardingInstructions]
+          properties:
+            massAllowance:
+              type: integer
+              description: Franchise de masse de la catapulte
+            catapultModel:
+              type: string
+            boardingInstructions:
+              type: string
+          
+    Cart:
+      type: object
+      required: [id, status, items, total, createdAt]
+      properties:
+        id: 
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [pending, paid]
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CartItem'
+        total:
+          type: number
+          format: float
+        createdAt:
+          type: string
+          format: date-time
+
+    CartItem:
+      type: object
+      required: [id, trip, passengers, subTotal]
+      properties:
+        id:
+          type: string
+          format: uuid
+        trip:
+          $ref: '#/components/schemas/TripSummary'
+        passengers:
+          type: integer
+          minimum: 1
+        subTotal:
+          type: number
+          format: float
+
+    Ticket:
+      type: object
+      required: [id, trip, pricePaid, issueAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        trip:
+          $ref: '#/components/schemas/TripSummary'
+        pricePaid:
+          type: number
+          format: float
+        issueAt:
+          type: string
+          format: date-time
 
   securitySchemes:
     bearerAuth:
