@@ -86,4 +86,4 @@ N'écrivez pas les douze opérations avant de tester la première.
 
 # Aides
 
-Je me suis aidé de la documentation de  OpenApi, Swagger et de l'IA pour comprendre les structures des GET,POST,DELETE,des schemas.
+Je me suis aidé de la documentation de  OpenApi, Swagger et de l'IA pour comprendre les structures des GET,POST,DELETE,des schemas notamment pour les GET et POST à propos du payement.
