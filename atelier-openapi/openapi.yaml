@@ -204,9 +204,9 @@ paths:
         '401': { $ref: '#/components/responses/Unauthorized' }
   /cities:
     get:
-      tags:[Découverte]
+      tags: [Découverte]
       operationId: getCities
-      summary:Rechercher une ville
+      summary: Rechercher une ville
       description: |
         Rechercher une ville desservie, par filtre textuel.
         Chaque ville du réseau possède une catapulte unique en son centre.
@@ -229,6 +229,120 @@ paths:
                 items: $ref: '#/components/schemas/City'
         '400': { $ref:'#/components/responses/BadRequest' }
         '422': { $ref: '#/components/responses/ValidationError' }
+
+  /trips/search:
+    post:
+      tags: [Découverte]
+      operationId: searchTrips
+      summary:Rechercher des lancers 
+      description: |
+        Rechercher les lancers reliant deux villes à une date donnée, pour un
+        nombre de places. Tous les lancers sont directs : aucune correspondance,
+        aucun itinéraire composé. Sans lancer direct ce jour-là, la liste est vide.
+        Opération PUBLIQUE.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [fromCityId, toCityId, date, passengers]
+              properties:
+                fromCityId:
+                  type: string
+                  format: uuid
+                toCityId:
+                  type: string
+                  format: uuid
+                date:
+                  type: string
+                  format: date
+                passengers:
+                  type: integer
+                  minimum: 1
+      responses:
+        '200':
+          description: Liste des lancers trouvés.
+          content:
+            application/json:
+              schema:
+                type: array
+                items: $ref: '#/components/schemas/TripSummary'
+        '400': { $ref:'#/components/responses/BadRequest' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+
+  /trips/{id}:
+    get:
+      tags: [Découverte]
+      operationId: getTripById
+      summary: Consulter le détail d'un lancer
+      description: |
+        Consulter le détail d'un lancer. Le détail porte ce qu'une liste de
+        résultats n'a aucune raison de transporter pour chacune de ses lignes.
+        Opération PUBLIQUE.
+      security: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Identifiant unique du lancer.
+          schema:
+            type: string
+            format: uuid
+            example:
+      responses:
+        '200':
+          description: Détail du lancer.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TripDetail'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /carts:
+    post:
+      tags: [Panier]
+      operationId: createCart
+      summary: Ouvrir un panier vide 
+      description: |
+        Ouvrir un panier vide. C'est ici que la connexion devient nécessaire :
+        la découverte est libre, la réservation est nominative.
+      responses:
+        '201':
+          description: Succès le panier a été crée.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+        '401': { $ref: '#/components/responses/Unauthorized'}
+        '409':
+          description: Le voyageur possède déjà un panier.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+    get:
+      tags: [Panier]
+      operationId: getActiveCart
+      summary: Récupérer son panier actif
+      description: |
+        Récupérer le panier actif du voyageur connecté. Un voyageur n'a qu'un
+        panier actif à la fois — et parfois aucun, ce qui est un état normal
+        et non une erreur. Réfléchissez à ce que ça implique pour la réponse.
+      security: []
+      responses:
+        '200':
+          description: Panier actif récupéré.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+        '401': { $ref: '#/components/responses/Unauthorized'}
+
+
+                
+          
   # ==========================================================================
   #  À VOUS — Le flux de réservation
   #
