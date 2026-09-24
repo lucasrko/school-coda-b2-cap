@@ -364,13 +364,13 @@ paths:
         L'écran de panier doit pouvoir se peindre à partir de cette seule
         réponse, sans second appel. Le total est calculé par le serveur.  
       parameters:
-      - name: id
-        in: path
-        required: true
-        description: Identifiant unique du panier.
-        schema:
-          type: string
-          format: uuid
+        - name: id
+          in: path
+          required: true
+          description: Identifiant unique du panier.
+          schema:
+            type: string
+            format: uuid
       requestBody:
         required: true
         content:
@@ -498,14 +498,6 @@ paths:
                 $ref: '#/components/schemas/Ticket'
         '401': { $ref: '#/components/responses/Unauthorized'}
 
-        
-
-
-
-
-
-                
-          
   # ==========================================================================
   #  À VOUS — Le flux de réservation
   #
@@ -581,106 +573,6 @@ components:
   #  toute l'API, y compris pour les opérations que vous allez écrire.
   #  Servez-vous en (`$ref`), ne les redéfinissez pas.
   # ==========================================================================
-  schemas:
-    City:
-      type: object
-      description: Ville desservie. Chaque ville possède une catapulte unique en son centre.
-      required: [id, name]
-      properties:
-        id:
-          type: string
-          format: uuid
-          example: 3f2a1b8c-5d4e-4f6a-9b8c-1d2e3f4a5b6c
-        name:
-          type: string
-          example: Dijon
-    TripSummary:
-      type: object
-      required: [id, fromCity, toCity, departureTime, durationTime, price]
-      properties:
-        id:
-          type: string
-          format: uuid
-        fromCity:
-          $ref: '#/components/schemas/City'
-        toCity:
-          $ref: '#/components/schemas/City'
-        departureTime:
-          type: string
-          format: date-time
-        durationTime:
-          type: integer
-        price:
-          type: number
-          format: float
-
-    TripDetail:
-      allOf:
-        - $ref '#/components/schemas/TripSummary'
-        - type: object
-          required: [massAllowance, catapultModel, boardingInstructions]
-          properties:
-            massAllowance:
-              type: integer
-              description: Franchise de masse de la catapulte
-            catapultModel:
-              type: string
-            boardingInstructions:
-              type: string
-          
-    Cart:
-      type: object
-      required: [id, status, items, total, createdAt]
-      properties:
-        id: 
-          type: string
-          format: uuid
-        status:
-          type: string
-          enum: [pending, paid]
-        items:
-          type: array
-          items:
-            $ref: '#/components/schemas/CartItem'
-        total:
-          type: number
-          format: float
-        createdAt:
-          type: string
-          format: date-time
-
-    CartItem:
-      type: object
-      required: [id, trip, passengers, subTotal]
-      properties:
-        id:
-          type: string
-          format: uuid
-        trip:
-          $ref: '#/components/schemas/TripSummary'
-        passengers:
-          type: integer
-          minimum: 1
-        subTotal:
-          type: number
-          format: float
-
-    Ticket:
-      type: object
-      required: [id, trip, pricePaid, issueAt]
-      properties:
-        id:
-          type: string
-          format: uuid
-        trip:
-          $ref: '#/components/schemas/TripSummary'
-        pricePaid:
-          type: number
-          format: float
-        issueAt:
-          type: string
-          format: date-time
-
   securitySchemes:
     bearerAuth:
       type: http
@@ -915,3 +807,101 @@ components:
 
     # Ticket
     #   Un droit à embarquer sur un lancer, émis au paiement. Un par place.
+    City:
+      type: object
+      description: Ville desservie. Chaque ville possède une catapulte unique en son centre.
+      required: [id, name]
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 3f2a1b8c-5d4e-4f6a-9b8c-1d2e3f4a5b6c
+        name:
+          type: string
+          example: Dijon
+    TripSummary:
+      type: object
+      required: [id, fromCity, toCity, departureTime, durationMinutes, price]
+      properties:
+        id:
+          type: string
+          format: uuid
+        fromCity:
+          $ref: '#/components/schemas/City'
+        toCity:
+          $ref: '#/components/schemas/City'
+        departureTime:
+          type: string
+          format: date-time
+        durationMinutes:
+          type: integer
+        price:
+          type: number
+          format: float
+
+    TripDetail:
+      allOf:
+        - $ref: '#/components/schemas/TripSummary'
+        - type: object
+          required: [massAllowanceKg, catapultModel, boardingInstructions]
+          properties:
+            massAllowanceKg:
+              type: integer
+              description: Franchise de masse de la catapulte
+            catapultModel:
+              type: string
+            boardingInstructions:
+              type: string
+          
+    Cart:
+      type: object
+      required: [id, status, items, total, createdAt]
+      properties:
+        id: 
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [pending, paid]
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CartItem'
+        total:
+          type: number
+          format: float
+        createdAt:
+          type: string
+          format: date-time
+
+    CartItem:
+      type: object
+      required: [id, trip, passengers, subTotal]
+      properties:
+        id:
+          type: string
+          format: uuid
+        trip:
+          $ref: '#/components/schemas/TripSummary'
+        passengers:
+          type: integer
+          minimum: 1
+        subTotal:
+          type: number
+          format: float
+
+    Ticket:
+      type: object
+      required: [id, trip, pricePaid, issuedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        trip:
+          $ref: '#/components/schemas/TripSummary'
+        pricePaid:
+          type: number
+          format: float
+        issuedAt:
+          type: string
+          format: date-time
