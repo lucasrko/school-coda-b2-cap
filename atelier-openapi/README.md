@@ -83,3 +83,7 @@ Vous pouvez importer `openapi.yaml` dans Bruno pour générer votre collection :
 requêtes viennent de votre propre contrat.
 
 N'écrivez pas les douze opérations avant de tester la première.
+
+# Aides
+
+Je me suis aidé de la documentation de  OpenApi, Swagger et de l'IA pour comprendre les structures des GET,POST,DELETE,des schemas.
